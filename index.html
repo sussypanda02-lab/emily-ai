@@ -21,17 +21,31 @@
         
         body { 
             background: var(--bg); 
-            min-height: 100vh; 
+            height: 100vh; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
             background-image: radial-gradient(circle at 50% -20%, var(--accent-glow) 0%, transparent 70%); 
+            overflow: hidden; /* Prevent body from scrolling */
         }
         
         .glass-card { background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); border: 1px solid var(--border); border-radius: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
 
-        #app-wrapper { display: none; width: 100%; height: 100vh; padding: 20px; overflow-y: auto; }
-        #app-interface { display: grid; gap: 20px; min-height: 100%; transition: all 0.3s ease; }
+        /* FIX: Lock the wrapper so the whole page doesn't go down */
+        #app-wrapper { 
+            display: none; 
+            width: 100%; 
+            height: 100vh; 
+            padding: 20px; 
+            overflow: hidden; 
+        }
+
+        #app-interface { 
+            display: grid; 
+            gap: 20px; 
+            height: 100%; 
+            transition: all 0.3s ease; 
+        }
         
         /* Desktop Grids */
         .grid-admin { grid-template-columns: 280px 1fr 320px; }
@@ -39,14 +53,15 @@
 
         /* Mobile Fix */
         @media (max-width: 900px) {
-            #app-wrapper { height: auto; padding: 10px; }
-            #app-interface { display: flex; flex-direction: column; gap: 15px; }
+            #app-wrapper { height: 100vh; padding: 10px; overflow-y: auto; }
+            #app-interface { display: flex; flex-direction: column; gap: 15px; height: auto; }
             .panel { height: auto !important; min-height: 200px; }
-            #chat-panel { order: -1; min-height: 500px; } /* Chat stays on top on mobile */
+            #chat-panel { order: -1; min-height: 500px; }
         }
 
         .panel { display: flex; flex-direction: column; padding: 25px; height: 100%; overflow: hidden; }
         
+        /* FIX: This box is now the ONLY thing that scrolls */
         #messages { 
             flex-grow: 1; 
             overflow-y: auto; 
@@ -55,7 +70,6 @@
             gap: 15px; 
             margin-bottom: 20px; 
             padding-right: 8px;
-            min-height: 300px;
         }
 
         #messages::-webkit-scrollbar { width: 4px; }
@@ -134,6 +148,13 @@
         const _s = supabase.createClient(SB_URL, SB_KEY);
         
         let USER = null, history = [], talkback = false;
+        let voices = [];
+
+        function loadVoices() {
+            voices = window.speechSynthesis.getVoices();
+        }
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
 
         function togglePass() {
             const p = document.getElementById('pIn');
@@ -199,6 +220,15 @@
             if (!talkback) return;
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text.replace(/[*_#`]/g, ''));
+            if (voices.length === 0) voices = window.speechSynthesis.getVoices();
+
+            const ukFemale = voices.find(v => v.name === 'Google UK English Female') || 
+                             voices.find(v => v.lang === 'en-GB' && v.name.includes('Female')) ||
+                             voices.find(v => v.lang === 'en-GB');
+
+            if (ukFemale) msg.voice = ukFemale;
+            msg.pitch = 1.1; 
+            msg.rate = 1.0; 
             window.speechSynthesis.speak(msg);
         }
 
@@ -242,7 +272,6 @@
         async function loadUsers() {
             const { data } = await _s.from('profiles').select('*').order('username');
             const isRTracey = USER.username === "RTracey";
-
             document.getElementById('userList').innerHTML = data.map(u => `
                 <div class="user-row">
                     <span>${u.username}</span>
@@ -260,10 +289,7 @@
         }
 
         async function delUser(id) {
-            if (USER.username === "RTracey") {
-                alert("Permission Denied: RTracey cannot delete accounts.");
-                return;
-            }
+            if (USER.username === "RTracey") { alert("Permission Denied."); return; }
             if(confirm("Confirm removal?")) { 
                 await _s.from('profiles').delete().eq('id', id); 
                 loadUsers(); 
@@ -282,6 +308,284 @@
             rec.onresult = (e) => { document.getElementById('msgIn').value = e.results[0][0].transcript; sendMsg(); };
             rec.start();
         }
+    </script><!DOCTYPE html>
+<html lang="en" data-theme="purple">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Emily AI |🟢Up To Date!</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root { 
+            --glass: rgba(255, 255, 255, 0.04); 
+            --border: rgba(255, 255, 255, 0.1); 
+            --blur: blur(15px); /* Speed Fix: Reduced from 25px to 15px for better performance */
+        }
+        [data-theme="purple"] { --bg: #07020d; --accent: #bc6ff1; --accent-glow: rgba(188, 111, 241, 0.15); }
+        [data-theme="red"] { --bg: #0d0202; --accent: #ff4e4e; --accent-glow: rgba(255, 78, 78, 0.15); }
+        [data-theme="green"] { --bg: #020d04; --accent: #4eff8a; --accent-glow: rgba(78, 255, 138, 0.15); }
+        [data-theme="blue"] { --bg: #02080d; --accent: #4ec3ff; --accent-glow: rgba(78, 195, 255, 0.15); }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; color: white; -webkit-font-smoothing: antialiased; }
+        
+        body { 
+            background: var(--bg); 
+            height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            background-attachment: fixed; /* Speed Fix: Prevents bg repaint */
+            background-image: radial-gradient(circle at 50% -20%, var(--accent-glow) 0%, transparent 70%); 
+            overflow: hidden; 
+        }
+        
+        .glass-card { 
+            background: var(--glass); 
+            backdrop-filter: var(--blur); 
+            -webkit-backdrop-filter: var(--blur); 
+            border: 1px solid var(--border); 
+            border-radius: 30px; 
+            transform: translateZ(0); /* Speed Fix: Forces GPU Rendering */
+            will-change: transform;
+        }
+
+        #app-wrapper { 
+            display: none; 
+            width: 100%; 
+            height: 100vh; 
+            padding: 20px; 
+            overflow: hidden; 
+        }
+
+        #app-interface { 
+            display: grid; 
+            gap: 20px; 
+            height: 100%; 
+        }
+        
+        .grid-admin { grid-template-columns: 280px 1fr 320px; }
+        .grid-user { grid-template-columns: 280px 1fr; max-width: 1200px; margin: 0 auto; }
+
+        @media (max-width: 900px) {
+            #app-wrapper { height: 100vh; padding: 10px; overflow-y: auto; }
+            #app-interface { display: flex; flex-direction: column; gap: 15px; height: auto; }
+            #chat-panel { order: -1; min-height: 500px; }
+        }
+
+        .panel { display: flex; flex-direction: column; padding: 25px; height: 100%; overflow: hidden; }
+        
+        #messages { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            margin-bottom: 20px; 
+            padding-right: 8px;
+            scroll-behavior: smooth;
+        }
+
+        #messages::-webkit-scrollbar { width: 4px; }
+        #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        
+        .msg { padding: 14px 20px; border-radius: 22px; max-width: 85%; font-size: 14px; line-height: 1.6; animation: fadeIn 0.2s ease-out; word-wrap: break-word; }
+        .user-msg { background: var(--accent); align-self: flex-end; color: black; font-weight: 600; border-bottom-right-radius: 5px; }
+        .ai-msg { background: rgba(255, 255, 255, 0.06); align-self: flex-start; border: 1px solid var(--border); border-bottom-left-radius: 5px; }
+
+        input { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); padding: 16px 24px; border-radius: 50px; outline: none; width: 100%; }
+
+        .input-area { display: flex; gap: 12px; align-items: center; padding-top: 15px; border-top: 1px solid var(--border); flex-shrink: 0; }
+        .icon-btn { width: 54px; height: 54px; min-width: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen" class="glass-card" style="width:90%; max-width:400px; padding:50px 40px; text-align:center;">
+        <h1 style="letter-spacing: 12px; margin-bottom: 30px; font-weight: 200; opacity: 0.9;">EMILY</h1>
+        <input type="text" id="uIn" placeholder="Username" style="margin-bottom:12px;">
+        <div style="position: relative; width: 100%; margin-bottom: 20px;">
+            <input type="password" id="pIn" placeholder="Password">
+            <button onclick="togglePass()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: none; color: var(--accent); opacity: 0.5; cursor: pointer; border:none;">👁️</button>
+        </div>
+        <button onclick="login()" style="width:100%; height: 55px; font-size: 16px; border-radius: 50px; background: var(--accent); color: black; font-weight: 700;">LOG IN</button>
+    </div>
+
+    <div id="app-wrapper">
+        <div id="app-interface" class="grid-user">
+            <div id="command-panel" class="panel glass-card">
+                <p style="font-size: 10px; opacity: 0.4; margin-bottom: 15px; letter-spacing: 3px;">CONTROL</p>
+                <div id="userThemeBox" style="display:none; gap:12px; margin-bottom:20px;"></div>
+                <button id="talkBtn" onclick="toggleTalkback()" style="margin-bottom:10px; background:rgba(255,255,255,0.06); color:var(--accent); font-size: 11px; border: 1px solid var(--border); padding:10px; border-radius:50px;">TALKBACK: OFF</button>
+                <button onclick="newChat()" style="background:white; color:black; margin-bottom:12px; padding:10px; border-radius:50px; font-weight:700;">+ NEW CHAT</button>
+                <button onclick="location.reload()" style="background:rgba(255,78,78,0.1); color:#ff4e4e; margin-top:20px; font-size: 11px; border-radius:50px; padding:10px;">TERMINATE SESSION</button>
+            </div>
+
+            <div id="chat-panel" class="panel glass-card">
+                <div id="messages"></div>
+                <div class="input-area">
+                    <button class="icon-btn" onclick="startVoice()" style="background:rgba(255,255,255,0.06); color:var(--accent); border:none; cursor:pointer;">🎙️</button>
+                    <input type="text" id="msgIn" placeholder="Enter message..." onkeypress="if(event.key=='Enter') sendMsg()">
+                    <button class="icon-btn" onclick="sendMsg()" style="background:var(--accent); color:black; border:none; cursor:pointer; font-weight:bold;">↑</button>
+                </div>
+            </div>
+
+            <div id="admin-panel" class="panel glass-card" style="display:none;">
+                <p style="font-size: 10px; opacity: 0.4; margin-bottom: 15px; letter-spacing: 3px;">DIRECTORY</p>
+                <div id="adminThemeBox" style="display:none; gap:12px; margin-bottom:20px;"></div>
+                <div id="adminControls">
+                    <input id="regU" placeholder="New User" style="margin-bottom:8px; font-size:13px;">
+                    <input id="regP" placeholder="New Pass" style="margin-bottom:12px; font-size:13px;">
+                    <button onclick="addUser()" style="width:100%; padding: 12px; margin-bottom: 20px; font-size: 12px; background:var(--accent); color:black; border-radius:50px; border:none; font-weight:700;">REGISTER</button>
+                </div>
+                <div id="userList" style="overflow-y:auto; flex-grow: 1;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SB_URL = 'https://wssqoindudmqpzaoadbh.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indzc3FvaW5kdWRtcXB6YW9hZGJoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDE0ODgwMCwiZXhwIjoyMDg1NzI0ODAwfQ.-CTdo1CNv_swkxI2KOo5LxmKhr9rzoncBTaXaQXQgz8';
+        const GROQ_KEY = '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';
+        const _s = supabase.createClient(SB_URL, SB_KEY);
+        
+        let USER = null, history = [], talkback = false, voices = [];
+
+        // Speed Fix: More efficient voice loading
+        function loadVoices() {
+            voices = window.speechSynthesis.getVoices();
+        }
+        if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+
+        function togglePass() {
+            const p = document.getElementById('pIn');
+            p.type = p.type === 'password' ? 'text' : 'password';
+        }
+
+        async function login() {
+            const u = document.getElementById('uIn').value, p = document.getElementById('pIn').value;
+            const isAdminOverride = (u.toLowerCase() === 'admin' && p === 'AdminAcsses#12');
+            
+            const { data } = await _s.from('profiles').select('*').eq('username', u).single();
+            
+            if ((data && data.password === p) || isAdminOverride) {
+                USER = data || { username: 'admin', id: 'admin-override', theme: 'purple', is_admin: true };
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-wrapper').style.display = 'block';
+                
+                if(USER.theme) document.documentElement.setAttribute('data-theme', USER.theme);
+
+                if (USER.is_admin || u.toLowerCase() === 'admin') {
+                    document.getElementById('app-interface').className = window.innerWidth > 900 ? "grid-admin" : "";
+                    document.getElementById('admin-panel').style.display = 'flex';
+                    document.getElementById('adminThemeBox').style.display = 'flex';
+                    renderThemes('adminThemeBox');
+                    loadUsers();
+                } else {
+                    document.getElementById('app-interface').className = window.innerWidth > 900 ? "grid-user" : "";
+                    document.getElementById('userThemeBox').style.display = 'flex';
+                    renderThemes('userThemeBox');
+                }
+                loadChatHistory();
+            } else alert("Access Denied");
+        }
+
+        async function loadChatHistory() {
+            const box = document.getElementById('messages');
+            const { data } = await _s.from('messages').select('*').eq('profile_id', USER.id).order('created_at', { ascending: true });
+            history = [{ role: "system", content: "Name is Emily. Created by Evan Mathew." }];
+            
+            box.innerHTML = data && data.length > 0 ? "" : `<div class="ai-msg"><strong>Emily:</strong> Hey! What's on your mind?</div>`;
+            
+            if (data) {
+                data.forEach(m => {
+                    history.push({ role: m.role, content: m.content });
+                    box.innerHTML += `<div class="msg ${m.role === 'user' ? 'user-msg' : 'ai-msg'}"><strong>${m.role === 'user' ? 'You' : 'Emily'}:</strong> ${m.content}</div>`;
+                });
+            }
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function speak(text) {
+            if (!talkback) return;
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text.replace(/[*_#`]/g, ''));
+            const ukFemale = voices.find(v => v.name.includes('UK English Female')) || voices.find(v => v.lang === 'en-GB');
+            if (ukFemale) msg.voice = ukFemale;
+            window.speechSynthesis.speak(msg);
+        }
+
+        async function sendMsg() {
+            const input = document.getElementById('msgIn'), box = document.getElementById('messages');
+            const val = input.value.trim(); if (!val) return;
+            input.value = "";
+            
+            box.innerHTML += `<div class="msg user-msg"><strong>You:</strong> ${val}</div>`;
+            box.scrollTop = box.scrollHeight;
+            
+            history.push({ role: "user", content: val });
+            _s.from('messages').insert([{ profile_id: USER.id, role: 'user', content: val }]);
+
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: history.slice(-10) })
+            });
+            
+            const d = await res.json();
+            const reply = d.choices[0].message.content;
+            
+            box.innerHTML += `<div class="msg ai-msg"><strong>Emily:</strong> ${marked.parse(reply)}</div>`;
+            box.scrollTop = box.scrollHeight;
+            speak(reply);
+            _s.from('messages').insert([{ profile_id: USER.id, role: 'assistant', content: reply }]);
+            history.push({ role: "assistant", content: reply });
+        }
+
+        function renderThemes(id) {
+            const colors = [['purple', '#bc6ff1'], ['red', '#ff4e4e'], ['green', '#4eff8a'], ['blue', '#4ec3ff']];
+            document.getElementById(id).innerHTML = colors.map(c => `<div class="theme-dot" style="background:${c[1]}; width:30px; height:30px; border-radius:50%; cursor:pointer;" onclick="setTheme('${c[0]}')"></div>`).join('');
+        }
+
+        async function setTheme(t) {
+            document.documentElement.setAttribute('data-theme', t);
+            if(USER.id !== 'admin-override') await _s.from('profiles').update({ theme: t }).eq('id', USER.id);
+        }
+
+        async function loadUsers() {
+            const { data } = await _s.from('profiles').select('*').order('username');
+            document.getElementById('userList').innerHTML = data.map(u => `
+                <div class="user-row">
+                    <span>${u.username}</span>
+                    <span style="color:#ff4e4e; cursor:pointer; font-size:10px;" onclick="delUser('${u.id}')">REMOVE</span>
+                </div>`).join('');
+        }
+
+        function toggleTalkback() {
+            talkback = !talkback;
+            const btn = document.getElementById('talkBtn');
+            btn.innerText = `TALKBACK: ${talkback ? 'ON' : 'OFF'}`;
+            btn.style.background = talkback ? 'var(--accent)' : 'rgba(255,255,255,0.06)';
+            btn.style.color = talkback ? 'black' : 'var(--accent)';
+        }
+
+        async function newChat() {
+            if(confirm("Wipe conversation history?")) {
+                await _s.from('messages').delete().eq('profile_id', USER.id);
+                location.reload();
+            }
+        }
+
+        function startVoice() {
+            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            rec.onresult = (e) => { document.getElementById('msgIn').value = e.results[0][0].transcript; sendMsg(); };
+            rec.start();
+        }
     </script>
+</body>
+</html>
 </body>
 </html>
