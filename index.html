@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Emily AI |🟢Up To Date!</title>
+    <title>Emily AI |🟢Online</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -26,12 +26,11 @@
             justify-content: center; 
             align-items: center; 
             background-image: radial-gradient(circle at 50% -20%, var(--accent-glow) 0%, transparent 70%); 
-            overflow: hidden; /* Prevent body from scrolling */
+            overflow: hidden;
         }
         
         .glass-card { background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); border: 1px solid var(--border); border-radius: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
 
-        /* FIX: Lock the wrapper so the whole page doesn't go down */
         #app-wrapper { 
             display: none; 
             width: 100%; 
@@ -47,11 +46,9 @@
             transition: all 0.3s ease; 
         }
         
-        /* Desktop Grids */
         .grid-admin { grid-template-columns: 280px 1fr 320px; }
         .grid-user { grid-template-columns: 280px 1fr; max-width: 1200px; margin: 0 auto; }
 
-        /* Mobile Fix */
         @media (max-width: 900px) {
             #app-wrapper { height: 100vh; padding: 10px; overflow-y: auto; }
             #app-interface { display: flex; flex-direction: column; gap: 15px; height: auto; }
@@ -61,7 +58,6 @@
 
         .panel { display: flex; flex-direction: column; padding: 25px; height: 100%; overflow: hidden; }
         
-        /* FIX: This box is now the ONLY thing that scrolls */
         #messages { 
             flex-grow: 1; 
             overflow-y: auto; 
@@ -193,7 +189,7 @@
         async function loadChatHistory() {
             const box = document.getElementById('messages'); box.innerHTML = "";
             const { data } = await _s.from('messages').select('*').eq('profile_id', USER.id).order('created_at', { ascending: true });
-            history = [{ role: "system", content: "Name is Emily. Created by Evan Mathew." }];
+            history = [{ role: "system", content: "Your name is Emily. You are a helpful AI assistant. Created by Evan Mathew." }];
             
             if (data && data.length > 0) {
                 data.forEach(m => {
@@ -201,7 +197,7 @@
                     box.innerHTML += `<div class="msg ${m.role === 'user' ? 'user-msg' : 'ai-msg'}"><strong>${m.role === 'user' ? 'You' : 'Emily'}:</strong> ${m.content}</div>`;
                 });
             } else {
-                const greeting = "Hey! Whats in your mind today?";
+                const greeting = "Hey! What's on your mind today?";
                 box.innerHTML = `<div class="ai-msg"><strong>Emily:</strong> ${greeting}</div>`;
                 speak(greeting);
             }
@@ -220,15 +216,8 @@
             if (!talkback) return;
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text.replace(/[*_#`]/g, ''));
-            if (voices.length === 0) voices = window.speechSynthesis.getVoices();
-
-            const ukFemale = voices.find(v => v.name === 'Google UK English Female') || 
-                             voices.find(v => v.lang === 'en-GB' && v.name.includes('Female')) ||
-                             voices.find(v => v.lang === 'en-GB');
-
-            if (ukFemale) msg.voice = ukFemale;
-            msg.pitch = 1.1; 
-            msg.rate = 1.0; 
+            const voice = voices.find(v => v.lang.includes('en-GB')) || voices[0];
+            if (voice) msg.voice = voice;
             window.speechSynthesis.speak(msg);
         }
 
@@ -271,13 +260,12 @@
 
         async function loadUsers() {
             const { data } = await _s.from('profiles').select('*').order('username');
-            const isRTracey = USER.username === "RTracey";
             document.getElementById('userList').innerHTML = data.map(u => `
                 <div class="user-row">
                     <span>${u.username}</span>
-                    ${u.username.toLowerCase() !== 'admin' && !isRTracey ? 
+                    ${u.username.toLowerCase() !== 'admin' ? 
                         `<span style="color:#ff4e4e; cursor:pointer; font-weight:800; font-size:10px;" onclick="delUser('${u.id}')">REMOVE</span>` : 
-                        `<span style="opacity:0.3; font-size:9px;">${u.username.toLowerCase() === 'admin' ? 'ROOT' : 'LOCKED'}</span>`}
+                        `<span style="opacity:0.3; font-size:9px;">ROOT</span>`}
                 </div>`).join('');
         }
 
@@ -289,7 +277,6 @@
         }
 
         async function delUser(id) {
-            if (USER.username === "RTracey") { alert("Permission Denied."); return; }
             if(confirm("Confirm removal?")) { 
                 await _s.from('profiles').delete().eq('id', id); 
                 loadUsers(); 
