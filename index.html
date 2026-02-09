@@ -2,137 +2,135 @@
 <html lang="en" data-theme="purple">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Emily AI |🟢Online</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Emily A.I|🟢Active</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --glass: rgba(255, 255, 255, 0.04); 
-            --border: rgba(255, 255, 255, 0.1); 
-            --blur: blur(25px); 
+            --bg: #030305; --accent: #c084fc; 
+            --glass: rgba(255, 255, 255, 0.03);
+            --card-bg: rgba(255, 255, 255, 0.07);
+            --border: rgba(255, 255, 255, 0.12);
+            --text: #ffffff; --blur: blur(30px);
         }
-        [data-theme="purple"] { --bg: #07020d; --accent: #bc6ff1; --accent-glow: rgba(188, 111, 241, 0.15); }
-        [data-theme="red"] { --bg: #0d0202; --accent: #ff4e4e; --accent-glow: rgba(255, 78, 78, 0.15); }
-        [data-theme="green"] { --bg: #020d04; --accent: #4eff8a; --accent-glow: rgba(78, 255, 138, 0.15); }
-        [data-theme="blue"] { --bg: #02080d; --accent: #4ec3ff; --accent-glow: rgba(78, 195, 255, 0.15); }
+        [data-theme="red"] { --accent: #ff4e4e; }
+        [data-theme="green"] { --accent: #4eff8a; }
+        [data-theme="blue"] { --accent: #4ec3ff; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; color: white; -webkit-font-smoothing: antialiased; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         
         body { 
-            background: var(--bg); 
-            height: 100vh; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            background-image: radial-gradient(circle at 50% -20%, var(--accent-glow) 0%, transparent 70%); 
-            overflow: hidden;
-        }
-        
-        .glass-card { background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); border: 1px solid var(--border); border-radius: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-
-        #app-wrapper { 
-            display: none; 
-            width: 100%; 
-            height: 100vh; 
-            padding: 20px; 
-            overflow: hidden; 
+            background: var(--bg);
+            background-image: radial-gradient(circle at 90% 10%, var(--accent), transparent 600px);
+            color: var(--text); min-height: 100vh; width: 100vw; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            overflow-x: hidden;
         }
 
-        #app-interface { 
-            display: grid; 
-            gap: 20px; 
-            height: 100%; 
-            transition: all 0.3s ease; 
-        }
-        
-        .grid-admin { grid-template-columns: 280px 1fr 320px; }
-        .grid-user { grid-template-columns: 280px 1fr; max-width: 1200px; margin: 0 auto; }
-
-        @media (max-width: 900px) {
-            #app-wrapper { height: 100vh; padding: 10px; overflow-y: auto; }
-            #app-interface { display: flex; flex-direction: column; gap: 15px; height: auto; }
-            .panel { height: auto !important; min-height: 200px; }
-            #chat-panel { order: -1; min-height: 500px; }
+        .panel { 
+            background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+            border: 1px solid var(--border); border-radius: 28px; display: flex; flex-direction: column;
         }
 
-        .panel { display: flex; flex-direction: column; padding: 25px; height: 100%; overflow: hidden; }
-        
-        #messages { 
-            flex-grow: 1; 
-            overflow-y: auto; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            margin-bottom: 20px; 
-            padding-right: 8px;
+        /* LOGIN BOX */
+        #login-screen { width: 90%; max-width: 400px; padding: 50px 40px; text-align: center; }
+        .login-input { width: 100%; padding: 18px; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 16px; color: white; margin-bottom: 12px; outline: none; }
+        .pass-w { position: relative; width: 100%; }
+        .eye { position: absolute; right: 20px; top: 18px; cursor: pointer; opacity: 0.6; font-size: 18px; }
+
+        /* APP WRAPPER */
+        #app-wrapper { display: none; width: 100%; max-width: 1400px; padding: 20px; }
+
+        .main-container { display: flex; flex-direction: row; gap: 20px; width: 100%; height: 85vh; align-items: stretch; justify-content: center; }
+        .sidebar { width: 280px; flex-shrink: 0; }
+        .chat-panel { flex: 1; min-width: 0; }
+        .admin-panel { width: 320px; flex-shrink: 0; }
+
+        @media (max-width: 1100px) {
+            body { justify-content: flex-start; padding-top: 20px; }
+            .main-container { flex-direction: column; height: auto; align-items: center; }
+            .sidebar, .chat-panel, .admin-panel { width: 100%; max-width: 500px; height: auto; }
+            .chat-panel { height: 70vh; order: 1; }
+            .sidebar { order: 2; }
+            .admin-panel { order: 3; margin-bottom: 60px; }
         }
 
-        #messages::-webkit-scrollbar { width: 4px; }
-        #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-        
-        .msg { padding: 14px 20px; border-radius: 22px; max-width: 85%; font-size: 14px; line-height: 1.6; animation: fadeIn 0.3s ease; word-wrap: break-word; }
-        .user-msg { background: var(--accent); align-self: flex-end; color: black; font-weight: 600; border-bottom-right-radius: 5px; box-shadow: 0 4px 15px var(--accent-glow); }
-        .ai-msg { background: rgba(255, 255, 255, 0.06); align-self: flex-start; border: 1px solid var(--border); border-bottom-left-radius: 5px; }
+        /* CHAT INTERNALS */
+        #messages { flex-grow: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 15px; scrollbar-width: none; }
+        .bubble { padding: 16px 22px; border-radius: 24px; max-width: 85%; font-size: 14px; line-height: 1.6; }
+        .b-user { align-self: flex-end; background: var(--accent); color: #000; font-weight: 700; border-bottom-right-radius: 4px; }
+        .b-ai { align-self: flex-start; background: var(--card-bg); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
 
-        input { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); padding: 16px 24px; border-radius: 50px; outline: none; transition: 0.3s; width: 100%; }
-        input:focus { border-color: var(--accent); background: rgba(255, 255, 255, 0.08); }
+        .input-box { padding: 15px 20px; display: flex; align-items: center; gap: 15px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2); }
+        .input-pill { flex: 1; background: rgba(255,255,255,0.05); border-radius: 50px; padding: 0 20px; border: 1px solid transparent; }
+        #msgIn { background: transparent; border: none; padding: 15px 0; color: white; width: 100%; outline: none; }
 
-        .pass-container { position: relative; width: 100%; margin-bottom: 20px; }
-        .eye-btn { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 0; color: var(--accent); opacity: 0.5; font-size: 18px; cursor: pointer; }
-        
-        button { cursor: pointer; border: none; font-weight: 700; border-radius: 50px; padding: 14px 25px; background: var(--accent); color: black; transition: 0.3s; letter-spacing: 0.5px; flex-shrink: 0; }
-        button:hover { transform: scale(1.02); filter: brightness(1.1); box-shadow: 0 0 20px var(--accent-glow); }
+        /* SEND ARROW STYLE */
+        .send-btn { 
+            background: var(--accent); color: #000; border: none; 
+            width: 45px; height: 45px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; transition: 0.2s; flex-shrink: 0;
+        }
+        .send-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+        .send-btn svg { width: 20px; height: 20px; fill: currentColor; }
 
-        .user-row { display: flex; justify-content: space-between; padding: 12px 15px; background: rgba(255,255,255,0.03); border-radius: 15px; margin-bottom: 8px; font-size: 13px; align-items: center; }
-        .theme-dot { width: 34px; height: 34px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); transition: 0.2s; }
-
-        .input-area { display: flex; gap: 12px; align-items: center; padding-top: 15px; border-top: 1px solid var(--border); flex-shrink: 0; }
-        .icon-btn { width: 54px; height: 54px; min-width: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .action-btn { width: 100%; padding: 15px; border-radius: 18px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: white; font-weight: 700; cursor: pointer; margin-bottom: 12px; }
+        .theme-dot { height: 45px; border-radius: 14px; cursor: pointer; border: 1px solid var(--border); }
+        .admin-only { display: none; }
+        .sidebar, .admin-panel { padding: 30px; }
+        .user-card { background: rgba(255,255,255,0.04); padding: 14px; border-radius: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
+        .del-btn { color: #ff4e4e; font-weight: 800; cursor: pointer; font-size: 11px; padding: 6px 12px; background: rgba(255,78,78,0.1); border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="login-screen" class="glass-card" style="width:90%; max-width:400px; padding:50px 40px; text-align:center;">
-        <h1 style="letter-spacing: 12px; margin-bottom: 30px; font-weight: 200; opacity: 0.9;">EMILY</h1>
-        <input type="text" id="uIn" placeholder="Username" style="margin-bottom:12px;">
-        <div class="pass-container">
-            <input type="password" id="pIn" placeholder="Password">
-            <button class="eye-btn" onclick="togglePass()">👁️</button>
+    <div id="login-screen" class="panel">
+        <h1 style="font-size: 32px; margin-bottom: 30px; letter-spacing: -1px;">Emily A.I</h1>
+        <input type="text" id="uIn" class="login-input" placeholder="Username">
+        <div class="pass-w">
+            <input type="password" id="pIn" class="login-input" placeholder="Password">
+            <span class="eye" onclick="tglP()">👁️</span>
         </div>
-        <button onclick="login()" style="width:100%; height: 55px; font-size: 16px;">LOG IN</button>
+        <button onclick="login()" class="action-btn" style="background:var(--accent); color:#000; border:none; margin-top:10px">INITIALIZE ACCESS</button>
     </div>
 
     <div id="app-wrapper">
-        <div id="app-interface" class="grid-user">
-            <div id="command-panel" class="panel glass-card">
-                <p style="font-size: 10px; opacity: 0.4; margin-bottom: 15px; letter-spacing: 3px;">CONTROL</p>
-                <div id="userThemeBox" style="display:none; gap:12px; margin-bottom:20px;"></div>
-                <button id="talkBtn" onclick="toggleTalkback()" style="margin-bottom:10px; background:rgba(255,255,255,0.06); color:var(--accent); font-size: 11px; border: 1px solid var(--border);">TALKBACK: OFF</button>
-                <button onclick="newChat()" style="background:white; color:black; margin-bottom:12px;">+ NEW CHAT</button>
-                <button onclick="location.reload()" style="background:rgba(255,78,78,0.1); color:#ff4e4e; margin-top:20px; font-size: 11px;">TERMINATE SESSION</button>
+        <div class="main-container">
+            <div class="panel sidebar">
+                <p style="font-size:11px; opacity:0.6; margin-bottom:15px; letter-spacing:1px">SYSTEM CORE</p>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 25px;">
+                    <div class="theme-dot" style="background:#c084fc" onclick="setT('purple')"></div>
+                    <div class="theme-dot" style="background:#ff4e4e" onclick="setT('red')"></div>
+                    <div class="theme-dot" style="background:#4eff8a" onclick="setT('green')"></div>
+                    <div class="theme-dot" style="background:#4ec3ff" onclick="setT('blue')"></div>
+                </div>
+                <button class="action-btn admin-only" id="tBtn" onclick="tglT()">UK VOICE: OFF</button>
+                <button class="action-btn" onclick="document.getElementById('messages').innerHTML=''">NEW SESSION</button>
+                <button class="action-btn" style="color:#ff4e4e; border-color:rgba(255,78,78,0.3)" onclick="location.reload()">TERMINATE</button>
             </div>
 
-            <div id="chat-panel" class="panel glass-card">
+            <div class="panel chat-panel">
                 <div id="messages"></div>
-                <div class="input-area">
-                    <button class="icon-btn" onclick="startVoice()" style="background:rgba(255,255,255,0.06); color:var(--accent);">🎙️</button>
-                    <input type="text" id="msgIn" placeholder="Enter message..." onkeypress="if(event.key=='Enter') sendMsg()">
-                    <button class="icon-btn" onclick="sendMsg()">↑</button>
+                <div class="input-box">
+                    <button class="admin-only" id="mBtn" onclick="startR()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:22px">🎤</button>
+                    <div class="input-pill">
+                        <input type="text" id="msgIn" placeholder="Send a message..." onkeypress="if(event.key=='Enter') send()">
+                    </div>
+                    <button onclick="send()" class="send-btn">
+                        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+                    </button>
                 </div>
             </div>
 
-            <div id="admin-panel" class="panel glass-card" style="display:none;">
-                <p style="font-size: 10px; opacity: 0.4; margin-bottom: 15px; letter-spacing: 3px;">DIRECTORY</p>
-                <div id="adminThemeBox" style="display:none; gap:12px; margin-bottom:20px;"></div>
-                <div id="adminControls">
-                    <input id="regU" placeholder="New User" style="margin-bottom:8px; font-size:13px;">
-                    <input id="regP" placeholder="New Pass" style="margin-bottom:12px; font-size:13px;">
-                    <button onclick="addUser()" style="width:100%; padding: 12px; margin-bottom: 20px; font-size: 12px;">REGISTER</button>
-                </div>
-                <div id="userList" style="overflow-y:auto; flex-grow: 1;"></div>
+            <div id="adminPanel" class="panel admin-panel admin-only">
+                <p style="font-size:11px; opacity:0.6; margin-bottom:15px; letter-spacing:1px">ROOT ACCESS</p>
+                <input type="text" id="rU" class="login-input" placeholder="New User" style="font-size:13px">
+                <input type="text" id="rP" class="login-input" placeholder="New Pass" style="font-size:13px">
+                <button class="action-btn" style="background:var(--accent); color:#000" onclick="reg()">CREATE ACCOUNT</button>
+                <div id="uList" style="margin-top:20px; overflow-y:auto; max-height:300px"></div>
             </div>
         </div>
     </div>
@@ -140,161 +138,81 @@
     <script>
         const SB_URL = 'https://wssqoindudmqpzaoadbh.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indzc3FvaW5kdWRtcXB6YW9hZGJoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDE0ODgwMCwiZXhwIjoyMDg1NzI0ODAwfQ.-CTdo1CNv_swkxI2KOo5LxmKhr9rzoncBTaXaQXQgz8';
-        const GROQ_KEY = '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';
+        const G_KEY = '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';
         const _s = supabase.createClient(SB_URL, SB_KEY);
-        
-        let USER = null, history = [], talkback = false;
-        let voices = [];
+        let USER = null, talk = false;
 
-        function loadVoices() {
-            voices = window.speechSynthesis.getVoices();
-        }
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-        loadVoices();
-
-        function togglePass() {
-            const p = document.getElementById('pIn');
-            p.type = p.type === 'password' ? 'text' : 'password';
-        }
+        function tglP() { const p = document.getElementById('pIn'); p.type = p.type === 'password' ? 'text' : 'password'; }
+        function setT(t) { document.documentElement.setAttribute('data-theme', t); }
 
         async function login() {
             const u = document.getElementById('uIn').value, p = document.getElementById('pIn').value;
+            if ((u === 'Admin' && p === 'AdminAcsses#12') || (u === 'Evan Mathew' && p === 'EvanAcsses#12')) {
+                startApp({ username: u }); return;
+            }
             const { data } = await _s.from('profiles').select('*').eq('username', u).single();
-            const isAdminOverride = (u.toLowerCase() === 'admin' && p === 'AdminAcsses#12');
-            
-            if ((data && data.password === p) || isAdminOverride) {
-                USER = data || { username: 'admin', id: 'admin-override', theme: 'purple', is_admin: true };
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-wrapper').style.display = 'block';
-                const ui = document.getElementById('app-interface');
-
-                if(USER.theme) document.documentElement.setAttribute('data-theme', USER.theme);
-
-                if (USER.is_admin === true || u.toLowerCase() === 'admin') {
-                    ui.className = window.innerWidth > 900 ? "grid-admin" : "";
-                    document.getElementById('admin-panel').style.display = 'flex';
-                    document.getElementById('adminThemeBox').style.display = 'flex';
-                    renderThemes('adminThemeBox');
-                    loadUsers();
-                } else {
-                    ui.className = window.innerWidth > 900 ? "grid-user" : "";
-                    document.getElementById('admin-panel').style.display = 'none';
-                    document.getElementById('userThemeBox').style.display = 'flex';
-                    renderThemes('userThemeBox');
-                }
-                loadChatHistory();
-            } else alert("Denied.");
+            if (data && data.password === p) startApp(data); else alert("Unauthorized Access");
         }
 
-        async function loadChatHistory() {
-            const box = document.getElementById('messages'); box.innerHTML = "";
-            const { data } = await _s.from('messages').select('*').eq('profile_id', USER.id).order('created_at', { ascending: true });
-            history = [{ role: "system", content: "Your name is Emily. You are a helpful AI assistant. Created by Evan Mathew." }];
-            
-            if (data && data.length > 0) {
-                data.forEach(m => {
-                    history.push({ role: m.role, content: m.content });
-                    box.innerHTML += `<div class="msg ${m.role === 'user' ? 'user-msg' : 'ai-msg'}"><strong>${m.role === 'user' ? 'You' : 'Emily'}:</strong> ${m.content}</div>`;
-                });
-            } else {
-                const greeting = "Hey! What's on your mind today?";
-                box.innerHTML = `<div class="ai-msg"><strong>Emily:</strong> ${greeting}</div>`;
-                speak(greeting);
-            }
-            box.scrollTop = box.scrollHeight;
-        }
-
-        function toggleTalkback() {
-            talkback = !talkback;
-            const btn = document.getElementById('talkBtn');
-            btn.innerText = `TALKBACK: ${talkback ? 'ON' : 'OFF'}`;
-            btn.style.background = talkback ? 'var(--accent)' : 'rgba(255,255,255,0.06)';
-            btn.style.color = talkback ? 'black' : 'var(--accent)';
-        }
-
-        function speak(text) {
-            if (!talkback) return;
-            window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(text.replace(/[*_#`]/g, ''));
-            const voice = voices.find(v => v.lang.includes('en-GB')) || voices[0];
-            if (voice) msg.voice = voice;
-            window.speechSynthesis.speak(msg);
-        }
-
-        async function sendMsg() {
-            const input = document.getElementById('msgIn'), box = document.getElementById('messages');
-            const val = input.value.trim(); if (!val) return;
-            input.value = "";
-            box.innerHTML += `<div class="msg user-msg"><strong>You:</strong> ${val}</div>`;
-            box.scrollTop = box.scrollHeight;
-            
-            await _s.from('messages').insert([{ profile_id: USER.id, role: 'user', content: val }]);
-            history.push({ role: "user", content: val });
-
-            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: history.slice(-12) })
-            });
-            const d = await res.json();
-            const reply = d.choices[0].message.content;
-            
-            box.innerHTML += `<div class="msg ai-msg"><strong>Emily:</strong> ${marked.parse(reply)}</div>`;
-            box.scrollTop = box.scrollHeight;
-            speak(reply);
-            await _s.from('messages').insert([{ profile_id: USER.id, role: 'assistant', content: reply }]);
-            history.push({ role: "assistant", content: reply });
-        }
-
-        function renderThemes(id) {
-            const colors = [['purple', '#bc6ff1'], ['red', '#ff4e4e'], ['green', '#4eff8a'], ['blue', '#4ec3ff']];
-            document.getElementById(id).innerHTML = colors.map(c => `<div class="theme-dot" style="background:${c[1]}" onclick="setTheme('${c[0]}')"></div>`).join('');
-        }
-
-        async function setTheme(t) {
-            document.documentElement.setAttribute('data-theme', t);
-            if(USER.id !== 'admin-override') {
-                await _s.from('profiles').update({ theme: t }).eq('id', USER.id);
+        function startApp(u) {
+            USER = u; document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-wrapper').style.display = 'block';
+            if (['Admin', 'Evan Mathew', 'RTracey'].includes(u.username)) {
+                document.querySelectorAll('.admin-only').forEach(e => e.style.display = 'block');
+                loadU();
             }
         }
 
-        async function loadUsers() {
-            const { data } = await _s.from('profiles').select('*').order('username');
-            document.getElementById('userList').innerHTML = data.map(u => `
-                <div class="user-row">
-                    <span>${u.username}</span>
-                    ${u.username.toLowerCase() !== 'admin' ? 
-                        `<span style="color:#ff4e4e; cursor:pointer; font-weight:800; font-size:10px;" onclick="delUser('${u.id}')">REMOVE</span>` : 
-                        `<span style="opacity:0.3; font-size:9px;">ROOT</span>`}
-                </div>`).join('');
+        async function loadU() {
+            const { data } = await _s.from('profiles').select('*');
+            if(data) document.getElementById('uList').innerHTML = data.map(i => `
+                <div class="user-card"><span>${i.username}</span>
+                ${i.username!=='Admin'?`<span class="del-btn" onclick="del('${i.id}')">REMOVE</span>`:`<small style="opacity:0.4">IMMUTABLE</small>`}</div>`).join('');
         }
 
-        async function addUser() {
-            const u = document.getElementById('regU').value, p = document.getElementById('regP').value;
+        async function del(id) { if(confirm("Confirm Removal?")) { await _s.from('profiles').delete().eq('id', id); loadU(); } }
+
+        function reg() {
+            const u = document.getElementById('rU').value, p = document.getElementById('rP').value;
             if(!u || !p) return;
-            await _s.from('profiles').insert([{ username: u, password: p, theme: 'purple' }]);
-            loadUsers();
+            _s.from('profiles').insert([{username:u, password:p}]).then(() => { loadU(); document.getElementById('rU').value=''; document.getElementById('rP').value=''; });
         }
 
-        async function delUser(id) {
-            if(confirm("Confirm removal?")) { 
-                await _s.from('profiles').delete().eq('id', id); 
-                loadUsers(); 
+        async function send() {
+            const i = document.getElementById('msgIn'), v = i.value; if(!v) return;
+            i.value = ""; addMsg('user', v);
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST", headers: { "Authorization": `Bearer ${G_KEY}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{role:"system",content:"Your name is Emily AI, created by Evan Mathew. Respond naturally."}, {role:"user",content:v}]})
+            });
+            const d = await res.json(); const r = d.choices[0].message.content;
+            addMsg('assistant', r);
+            if(talk) { 
+                window.speechSynthesis.cancel(); 
+                const ut = new SpeechSynthesisUtterance(r);
+                const voices = window.speechSynthesis.getVoices();
+                const ukVoice = voices.find(v => v.name.includes('Google UK English Female')) || 
+                                voices.find(v => v.name.includes('en-GB') && v.name.includes('Female')) || 
+                                voices.find(v => v.name.includes('en-GB'));
+                if(ukVoice) ut.voice = ukVoice;
+                window.speechSynthesis.speak(ut); 
             }
         }
 
-        async function newChat() {
-            if(confirm("Wipe conversation history?")) {
-                await _s.from('messages').delete().eq('profile_id', USER.id);
-                location.reload();
-            }
+        function addMsg(s, t) {
+            const b = document.getElementById('messages'), d = document.createElement('div');
+            d.className = `bubble ${s==='user'?'b-user':'b-ai'}`; d.innerHTML = marked.parse(t);
+            b.appendChild(d); b.scrollTop = b.scrollHeight;
         }
 
-        function startVoice() {
-            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            rec.onresult = (e) => { document.getElementById('msgIn').value = e.results[0][0].transcript; sendMsg(); };
-            rec.start();
+        function tglT() { talk = !talk; document.getElementById('tBtn').innerText = `UK VOICE: ${talk?'ON':'OFF'}`; }
+        function startR() {
+            const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const r = new Rec(); r.onstart = () => document.getElementById('mBtn').style.color='red';
+            r.onresult = (e) => { document.getElementById('msgIn').value = e.results[0][0].transcript; send(); };
+            r.onend = () => document.getElementById('mBtn').style.color='var(--accent)'; r.start();
         }
+        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
     </script>
 </body>
 </html>
