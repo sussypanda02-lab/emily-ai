@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Emily A.I|🟢Active</title>
+    <title>Emily A.I</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
@@ -34,13 +34,11 @@
             border: 1px solid var(--border); border-radius: 28px; display: flex; flex-direction: column;
         }
 
-        /* LOGIN BOX */
         #login-screen { width: 90%; max-width: 400px; padding: 50px 40px; text-align: center; }
         .login-input { width: 100%; padding: 18px; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 16px; color: white; margin-bottom: 12px; outline: none; }
         .pass-w { position: relative; width: 100%; }
         .eye { position: absolute; right: 20px; top: 18px; cursor: pointer; opacity: 0.6; font-size: 18px; }
 
-        /* APP WRAPPER */
         #app-wrapper { display: none; width: 100%; max-width: 1400px; padding: 20px; }
 
         .main-container { display: flex; flex-direction: row; gap: 20px; width: 100%; height: 85vh; align-items: stretch; justify-content: center; }
@@ -57,7 +55,6 @@
             .admin-panel { order: 3; margin-bottom: 60px; }
         }
 
-        /* CHAT INTERNALS */
         #messages { flex-grow: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 15px; scrollbar-width: none; }
         .bubble { padding: 16px 22px; border-radius: 24px; max-width: 85%; font-size: 14px; line-height: 1.6; }
         .b-user { align-self: flex-end; background: var(--accent); color: #000; font-weight: 700; border-bottom-right-radius: 4px; }
@@ -67,14 +64,12 @@
         .input-pill { flex: 1; background: rgba(255,255,255,0.05); border-radius: 50px; padding: 0 20px; border: 1px solid transparent; }
         #msgIn { background: transparent; border: none; padding: 15px 0; color: white; width: 100%; outline: none; }
 
-        /* SEND ARROW STYLE */
         .send-btn { 
             background: var(--accent); color: #000; border: none; 
             width: 45px; height: 45px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
             cursor: pointer; transition: 0.2s; flex-shrink: 0;
         }
-        .send-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
         .send-btn svg { width: 20px; height: 20px; fill: currentColor; }
 
         .action-btn { width: 100%; padding: 15px; border-radius: 18px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: white; font-weight: 700; cursor: pointer; margin-bottom: 12px; }
@@ -107,15 +102,15 @@
                     <div class="theme-dot" style="background:#4eff8a" onclick="setT('green')"></div>
                     <div class="theme-dot" style="background:#4ec3ff" onclick="setT('blue')"></div>
                 </div>
-                <button class="action-btn admin-only" id="tBtn" onclick="tglT()">UK VOICE: OFF</button>
+                <button class="action-btn" id="tBtn" onclick="tglT()">UK VOICE: OFF</button>
                 <button class="action-btn" onclick="document.getElementById('messages').innerHTML=''">NEW SESSION</button>
-                <button class="action-btn" style="color:#ff4e4e; border-color:rgba(255,78,78,0.3)" onclick="location.reload()">TERMINATE</button>
+                <button class="action-btn" style="color:#ff4e4e; border-color:rgba(255,78,78,0.3)" onclick="logout()">TERMINATE</button>
             </div>
 
             <div class="panel chat-panel">
                 <div id="messages"></div>
                 <div class="input-box">
-                    <button class="admin-only" id="mBtn" onclick="startR()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:22px">🎤</button>
+                    <button id="mBtn" onclick="startR()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:22px">🎤</button>
                     <div class="input-pill">
                         <input type="text" id="msgIn" placeholder="Send a message..." onkeypress="if(event.key=='Enter') send()">
                     </div>
@@ -138,9 +133,15 @@
     <script>
         const SB_URL = 'https://wssqoindudmqpzaoadbh.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indzc3FvaW5kdWRtcXB6YW9hZGJoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDE0ODgwMCwiZXhwIjoyMDg1NzI0ODAwfQ.-CTdo1CNv_swkxI2KOo5LxmKhr9rzoncBTaXaQXQgz8';
-        const G_KEY = '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';
+        const G_KEY = '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';
         const _s = supabase.createClient(SB_URL, SB_KEY);
         let USER = null, talk = false;
+
+        function logout() {
+            window.speechSynthesis.cancel();
+            talk = false;
+            location.reload();
+        }
 
         function tglP() { const p = document.getElementById('pIn'); p.type = p.type === 'password' ? 'text' : 'password'; }
         function setT(t) { document.documentElement.setAttribute('data-theme', t); }
@@ -181,22 +182,25 @@
         async function send() {
             const i = document.getElementById('msgIn'), v = i.value; if(!v) return;
             i.value = ""; addMsg('user', v);
-            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST", headers: { "Authorization": `Bearer ${G_KEY}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{role:"system",content:"Your name is Emily AI, created by Evan Mathew. Respond naturally."}, {role:"user",content:v}]})
-            });
-            const d = await res.json(); const r = d.choices[0].message.content;
-            addMsg('assistant', r);
-            if(talk) { 
-                window.speechSynthesis.cancel(); 
-                const ut = new SpeechSynthesisUtterance(r);
-                const voices = window.speechSynthesis.getVoices();
-                const ukVoice = voices.find(v => v.name.includes('Google UK English Female')) || 
-                                voices.find(v => v.name.includes('en-GB') && v.name.includes('Female')) || 
-                                voices.find(v => v.name.includes('en-GB'));
-                if(ukVoice) ut.voice = ukVoice;
-                window.speechSynthesis.speak(ut); 
-            }
+            try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST", headers: { "Authorization": `Bearer ${G_KEY}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{role:"system",content:"Your name is Emily AI, created by Evan Mathew. Respond naturally."}, {role:"user",content:v}]})
+                });
+                const d = await res.json(); 
+                const r = d.choices[0].message.content;
+                addMsg('assistant', r);
+                if(talk) { 
+                    window.speechSynthesis.cancel(); 
+                    const ut = new SpeechSynthesisUtterance(r);
+                    const voices = window.speechSynthesis.getVoices();
+                    const ukVoice = voices.find(v => v.name.includes('Google UK English Female')) || 
+                                    voices.find(v => v.name.includes('en-GB') && v.name.includes('Female')) || 
+                                    voices.find(v => v.name.includes('en-GB'));
+                    if(ukVoice) ut.voice = ukVoice;
+                    window.speechSynthesis.speak(ut); 
+                }
+            } catch(e) { addMsg('assistant', 'Error connecting to API.'); }
         }
 
         function addMsg(s, t) {
@@ -208,6 +212,7 @@
         function tglT() { talk = !talk; document.getElementById('tBtn').innerText = `UK VOICE: ${talk?'ON':'OFF'}`; }
         function startR() {
             const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if(!Rec) { alert("Speech not supported on this device."); return; }
             const r = new Rec(); r.onstart = () => document.getElementById('mBtn').style.color='red';
             r.onresult = (e) => { document.getElementById('msgIn').value = e.results[0][0].transcript; send(); };
             r.onend = () => document.getElementById('mBtn').style.color='var(--accent)'; r.start();
