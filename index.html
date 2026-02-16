@@ -14,88 +14,114 @@
             --card-bg: rgba(255, 255, 255, 0.07);
             --border: rgba(255, 255, 255, 0.12);
             --text: #ffffff; --blur: blur(30px);
+            --theme-light: #1a0b2e;
         }
-        [data-theme="red"] { --accent: #ff4e4e; }
-        [data-theme="green"] { --accent: #4eff8a; }
-        [data-theme="blue"] { --accent: #4ec3ff; }
+        [data-theme="red"] { --accent: #ff4e4e; --theme-light: #2e0b0b; }
+        [data-theme="green"] { --accent: #4eff8a; --theme-light: #0b2e14; }
+        [data-theme="blue"] { --accent: #4ec3ff; --theme-light: #0b1e2e; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; width: 100vw; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; transition: background 0.6s ease; }
+        body.glow-off { background: var(--theme-light) !important; }
+
+        #dynamic-glow { position: fixed; width: 60vw; height: 60vw; background: radial-gradient(circle, var(--accent), transparent 70%); filter: blur(80px); opacity: 0.4; pointer-events: none; z-index: -1; top: -10vw; right: -10vw; transition: opacity 0.5s ease; }
+
+        /* --- SCANNER REVEAL EFFECT --- */
+        #scanner { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 8px; 
+            background: #4eff8a; box-shadow: 0 0 25px #4eff8a; z-index: 10000; 
+        }
         
-        body { 
-            background: var(--bg);
-            background-image: radial-gradient(circle at 90% 10%, var(--accent), transparent 600px);
-            color: var(--text); min-height: 100vh; width: 100vw; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            overflow-x: hidden;
+        .reveal-active {
+            clip-path: inset(0 0 100% 0); /* Start hidden from bottom */
+            animation: revealUI 9s linear forwards;
         }
 
-        .panel { 
-            background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-            border: 1px solid var(--border); border-radius: 28px; display: flex; flex-direction: column;
+        @keyframes scanMove {
+            0% { top: 0; }
+            100% { top: 100%; }
         }
 
+        @keyframes revealUI {
+            0% { clip-path: inset(0 0 100% 0); }
+            100% { clip-path: inset(0 0 0% 0); }
+        }
+
+        /* --- LOADING SCREEN --- */
+        #loading-screen { display: none; width: 90%; max-width: 450px; text-align: center; padding: 40px; z-index: 1000; }
+        .progress-container { width: 100%; height: 10px; background: rgba(255,255,255,0.1); border-radius: 20px; margin-top: 25px; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background: var(--accent); transition: width 0.1s linear; box-shadow: 0 0 15px var(--accent); }
+
+        .panel { background: var(--glass); backdrop-filter: var(--blur); border: 1px solid var(--border); border-radius: 28px; display: flex; flex-direction: column; }
         #login-screen { width: 90%; max-width: 400px; padding: 50px 40px; text-align: center; }
         .login-input { width: 100%; padding: 18px; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 16px; color: white; margin-bottom: 12px; outline: none; }
-        .pass-w { position: relative; width: 100%; }
-        .eye { position: absolute; right: 20px; top: 18px; cursor: pointer; opacity: 0.6; font-size: 18px; }
-
+        
         #app-wrapper { display: none; width: 100%; max-width: 1400px; padding: 20px; }
+        .main-container { display: flex; gap: 20px; width: 100%; height: 85vh; }
+        .sidebar { width: 280px; flex-shrink: 0; padding: 30px; }
+        .chat-panel { flex: 1; min-width: 0; position: relative; display: flex; flex-direction: column; }
+        .admin-panel { width: 320px; flex-shrink: 0; padding: 30px; }
 
-        .main-container { display: flex; flex-direction: row; gap: 20px; width: 100%; height: 85vh; align-items: stretch; justify-content: center; }
-        .sidebar { width: 280px; flex-shrink: 0; }
-        .chat-panel { flex: 1; min-width: 0; }
-        .admin-panel { width: 320px; flex-shrink: 0; }
-
-        @media (max-width: 1100px) {
-            body { justify-content: flex-start; padding-top: 20px; }
-            .main-container { flex-direction: column; height: auto; align-items: center; }
-            .sidebar, .chat-panel, .admin-panel { width: 100%; max-width: 500px; height: auto; }
-            .chat-panel { height: 70vh; order: 1; }
-            .sidebar { order: 2; }
-            .admin-panel { order: 3; margin-bottom: 60px; }
-        }
-
+        .chat-header { padding: 20px 25px 0 25px; font-weight: 700; font-size: 14px; opacity: 0.8; letter-spacing: 1px; color: var(--accent); }
         #messages { flex-grow: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 15px; scrollbar-width: none; }
         .bubble { padding: 16px 22px; border-radius: 24px; max-width: 85%; font-size: 14px; line-height: 1.6; }
         .b-user { align-self: flex-end; background: var(--accent); color: #000; font-weight: 700; border-bottom-right-radius: 4px; }
         .b-ai { align-self: flex-start; background: var(--card-bg); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
 
-        .input-box { padding: 15px 20px; display: flex; align-items: center; gap: 15px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2); }
-        .input-pill { flex: 1; background: rgba(255,255,255,0.05); border-radius: 50px; padding: 0 20px; border: 1px solid transparent; }
+        .input-box { padding: 15px 20px; display: flex; align-items: center; gap: 15px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2); margin-top: auto; }
+        .input-pill { flex: 1; background: rgba(255,255,255,0.05); border-radius: 50px; padding: 0 20px; }
         #msgIn { background: transparent; border: none; padding: 15px 0; color: white; width: 100%; outline: none; }
 
-        .send-btn { 
-            background: var(--accent); color: #000; border: none; 
-            width: 45px; height: 45px; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; transition: 0.2s; flex-shrink: 0;
-        }
-        .send-btn svg { width: 20px; height: 20px; fill: currentColor; }
-
+        .send-btn { background: var(--accent); color: #000; border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .action-btn { width: 100%; padding: 15px; border-radius: 18px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: white; font-weight: 700; cursor: pointer; margin-bottom: 12px; }
         .theme-dot { height: 45px; border-radius: 14px; cursor: pointer; border: 1px solid var(--border); }
-        .admin-only { display: none; }
-        .sidebar, .admin-panel { padding: 30px; }
-        .user-card { background: rgba(255,255,255,0.04); padding: 14px; border-radius: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
-        .del-btn { color: #ff4e4e; font-weight: 800; cursor: pointer; font-size: 11px; padding: 6px 12px; background: rgba(255,78,78,0.1); border-radius: 10px; }
+        
+        .user-count { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 6px; font-size: 10px; margin-left: 10px; }
+        .search-input { width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px 15px; color: white; margin-bottom: 15px; outline: none; }
+        .user-card { background: rgba(255,255,255,0.04); padding: 20px; border-radius: 24px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
+        .action-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+        .u-btn { font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
+        
+        .core-badge { color: #FFD700; font-size: 11px; font-weight: 900; letter-spacing: 1px; animation: core-pulse 2s infinite ease-in-out; }
+        @keyframes core-pulse { 0%, 100% { opacity: 0.6; text-shadow: 0 0 2px #FFD700; } 50% { opacity: 1; text-shadow: 0 0 10px #FFD700; } }
+
+        @media (max-width: 1100px) { 
+            #app-wrapper { height: 100vh; padding: 10px; }
+            .main-container { flex-direction: column; height: auto; gap: 10px; } 
+            .sidebar, .admin-panel { width: 100%; order: 2; padding: 20px; } 
+            .chat-panel { width: 100%; height: 60vh; order: 1; }
+        }
     </style>
 </head>
 <body>
 
+    <div id="scanner"></div>
+    <div id="dynamic-glow"></div>
+
     <div id="login-screen" class="panel">
-        <h1 style="font-size: 32px; margin-bottom: 30px; letter-spacing: -1px;">Emily A.I</h1>
+        <h1 style="margin-bottom: 30px;">Emily A.I</h1>
         <input type="text" id="uIn" class="login-input" placeholder="Username">
-        <div class="pass-w">
+        <div style="position:relative">
             <input type="password" id="pIn" class="login-input" placeholder="Password">
-            <span class="eye" onclick="tglP()">👁️</span>
+            <span style="position:absolute; right:20px; top:18px; cursor:pointer" onclick="tglP()">👁️</span>
         </div>
-        <button onclick="login()" class="action-btn" style="background:var(--accent); color:#000; border:none; margin-top:10px">INITIALIZE ACCESS</button>
+        <button onclick="login()" class="action-btn" style="background:var(--accent); color:#000; border:none">INITIALIZE</button>
+    </div>
+
+    <div id="loading-screen" class="panel">
+        <h2 style="color:var(--accent)">Logging In!</h2>
+        <h3 id="welcome-msg" style="margin: 10px 0;">Hey! User</h3>
+        <p style="opacity: 0.7;">Welcome To Evan's Creation!</p>
+        <div class="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+        <p style="font-size: 12px; margin-top: 15px; opacity: 0.5;">DECRYPTING ACSSES FOR USE...</p>
     </div>
 
     <div id="app-wrapper">
         <div class="main-container">
             <div class="panel sidebar">
-                <p style="font-size:11px; opacity:0.6; margin-bottom:15px; letter-spacing:1px">SYSTEM CORE</p>
+                <p style="font-size:11px; opacity:0.6; margin-bottom:15px">SYSTEM CORE</p>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 25px;">
                     <div class="theme-dot" style="background:#c084fc" onclick="setT('purple')"></div>
                     <div class="theme-dot" style="background:#ff4e4e" onclick="setT('red')"></div>
@@ -103,29 +129,29 @@
                     <div class="theme-dot" style="background:#4ec3ff" onclick="setT('blue')"></div>
                 </div>
                 <button class="action-btn" id="tBtn" onclick="tglT()">UK VOICE: OFF</button>
+                <button class="action-btn" onclick="tglGlow()">[LIGHT TOP]</button>
                 <button class="action-btn" onclick="document.getElementById('messages').innerHTML=''">NEW SESSION</button>
-                <button class="action-btn" style="color:#ff4e4e; border-color:rgba(255,78,78,0.3)" onclick="logout()">TERMINATE</button>
+                <div style="flex:1"></div>
+                <button class="action-btn" style="color:#ff4e4e; border-color:rgba(255,78,78,0.3)" onclick="location.reload()">TERMINATE</button>
             </div>
 
             <div class="panel chat-panel">
+                <div class="chat-header">Evan's Creation V.1.67.6</div>
                 <div id="messages"></div>
                 <div class="input-box">
-                    <button id="mBtn" onclick="startR()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:22px">🎤</button>
-                    <div class="input-pill">
-                        <input type="text" id="msgIn" placeholder="Send a message..." onkeypress="if(event.key=='Enter') send()">
-                    </div>
-                    <button onclick="send()" class="send-btn">
-                        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-                    </button>
+                    <button id="mBtn" onclick="startR()" style="background:none; border:none; color:var(--accent); font-size:22px; cursor:pointer">🎤</button>
+                    <div class="input-pill"><input type="text" id="msgIn" placeholder="Send a message..." onkeypress="if(event.key=='Enter') send()"></div>
+                    <button onclick="send()" class="send-btn">➔</button>
                 </div>
             </div>
 
-            <div id="adminPanel" class="panel admin-panel admin-only">
-                <p style="font-size:11px; opacity:0.6; margin-bottom:15px; letter-spacing:1px">ROOT ACCESS</p>
-                <input type="text" id="rU" class="login-input" placeholder="New User" style="font-size:13px">
-                <input type="text" id="rP" class="login-input" placeholder="New Pass" style="font-size:13px">
-                <button class="action-btn" style="background:var(--accent); color:#000" onclick="reg()">CREATE ACCOUNT</button>
-                <div id="uList" style="margin-top:20px; overflow-y:auto; max-height:300px"></div>
+            <div id="adminPanel" class="panel admin-panel" style="display:none">
+                <p style="font-size:11px; opacity:0.6; margin-bottom:15px">ROOT ACCESS <span id="uCount" class="user-count">0</span></p>
+                <input type="text" id="rU" class="login-input" placeholder="New User">
+                <input type="text" id="rP" class="login-input" placeholder="New Pass">
+                <button class="action-btn" style="background:var(--accent); color:#000" onclick="reg()">CREATE</button>
+                <input type="text" id="uSearch" class="search-input" placeholder="Search users..." oninput="filterU()">
+                <div id="uList" style="overflow-y:auto; flex:1"></div>
             </div>
         </div>
     </div>
@@ -135,49 +161,89 @@
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indzc3FvaW5kdWRtcXB6YW9hZGJoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDE0ODgwMCwiZXhwIjoyMDg1NzI0ODAwfQ.-CTdo1CNv_swkxI2KOo5LxmKhr9rzoncBTaXaQXQgz8';
         const G_KEY = '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';
         const _s = supabase.createClient(SB_URL, SB_KEY);
-        let USER = null, talk = false;
-
-        function logout() {
-            window.speechSynthesis.cancel();
-            talk = false;
-            location.reload();
-        }
+        let talk = false, allUsers = [];
 
         function tglP() { const p = document.getElementById('pIn'); p.type = p.type === 'password' ? 'text' : 'password'; }
         function setT(t) { document.documentElement.setAttribute('data-theme', t); }
+        function tglGlow() { document.body.classList.toggle('glow-off'); document.getElementById('dynamic-glow').style.display = document.body.classList.contains('glow-off') ? 'none' : 'block'; }
+        function tglT() { talk = !talk; document.getElementById('tBtn').innerText = `UK VOICE: ${talk?'ON':'OFF'}`; }
 
         async function login() {
             const u = document.getElementById('uIn').value, p = document.getElementById('pIn').value;
-            if ((u === 'Admin' && p === 'AdminAcsses#12') || (u === 'Evan Mathew' && p === 'EvanAcsses#12')) {
-                startApp({ username: u }); return;
-            }
             const { data } = await _s.from('profiles').select('*').eq('username', u).single();
-            if (data && data.password === p) startApp(data); else alert("Unauthorized Access");
+            
+            if ((u === 'Admin' && p === 'AdminAcsses#12') || (data && data.password === p)) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('loading-screen').style.display = 'block';
+                document.getElementById('welcome-msg').innerText = `Hey! ${u}`;
+                
+                let progress = 0;
+                const bar = document.getElementById('progress-bar');
+                const interval = setInterval(() => {
+                    progress += (100 / 150); 
+                    bar.style.width = progress + "%";
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        startReveal(u);
+                    }
+                }, 100);
+            } else alert("Unauthorized Access");
         }
 
-        function startApp(u) {
-            USER = u; document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('app-wrapper').style.display = 'block';
-            if (['Admin', 'Evan Mathew', 'RTracey'].includes(u.username)) {
-                document.querySelectorAll('.admin-only').forEach(e => e.style.display = 'block');
-                loadU();
+        function startReveal(user) {
+            document.getElementById('loading-screen').style.display = 'none';
+            const sc = document.getElementById('scanner');
+            const wrapper = document.getElementById('app-wrapper');
+            
+            sc.style.display = 'block';
+            sc.style.animation = 'scanMove 9s linear forwards';
+            
+            wrapper.style.display = 'block';
+            wrapper.classList.add('reveal-active');
+
+            if(['Admin', 'Evan Mathew', 'RTracey'].includes(user)) { 
+                document.getElementById('adminPanel').style.display = 'flex'; 
+                loadU(); 
             }
+
+            setTimeout(() => {
+                sc.style.display = 'none';
+                wrapper.classList.remove('reveal-active');
+                wrapper.style.clipPath = 'none';
+            }, 9000);
         }
 
         async function loadU() {
             const { data } = await _s.from('profiles').select('*');
-            if(data) document.getElementById('uList').innerHTML = data.map(i => `
-                <div class="user-card"><span>${i.username}</span>
-                ${i.username!=='Admin'?`<span class="del-btn" onclick="del('${i.id}')">REMOVE</span>`:`<small style="opacity:0.4">IMMUTABLE</small>`}</div>`).join('');
+            if(data) { allUsers = data; renderU(data); }
         }
 
+        function renderU(list) {
+            document.getElementById('uCount').innerText = list.length;
+            const sorted = list.sort((a, b) => {
+                if (a.username === 'Admin') return -1; if (b.username === 'Admin') return 1;
+                if (a.username === 'RTracey') return -1; if (b.username === 'RTracey') return 1;
+                return a.username.localeCompare(b.username);
+            });
+            document.getElementById('uList').innerHTML = sorted.map(i => {
+                const isCore = ['Admin', 'RTracey'].includes(i.username);
+                return `
+                <div class="user-card">
+                    <span style="font-weight:700">${i.username}</span>
+                    <div class="action-stack">
+                        ${isCore ? '<span class="core-badge">CORE</span>' : `
+                        <span class="u-btn" style="color:var(--accent)" onclick="alert('Pass: ${i.password}')">PASS</span>
+                        <span class="u-btn" style="color:#4ec3ff" onclick="editU('${i.id}')">EDIT</span>
+                        <span class="u-btn" style="color:#ff4e4e" onclick="del('${i.id}')">REMOVE</span>`}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function filterU() { const q = document.getElementById('uSearch').value.toLowerCase(); renderU(allUsers.filter(u => u.username.toLowerCase().includes(q))); }
+        async function editU(id) { const p = prompt("New Password:"); if(p) { await _s.from('profiles').update({password:p}).eq('id',id); loadU(); }}
         async function del(id) { if(confirm("Confirm Removal?")) { await _s.from('profiles').delete().eq('id', id); loadU(); } }
-
-        function reg() {
-            const u = document.getElementById('rU').value, p = document.getElementById('rP').value;
-            if(!u || !p) return;
-            _s.from('profiles').insert([{username:u, password:p}]).then(() => { loadU(); document.getElementById('rU').value=''; document.getElementById('rP').value=''; });
-        }
+        async function reg() { const u = document.getElementById('rU').value, p = document.getElementById('rP').value; await _s.from('profiles').insert([{username:u, password:p}]); loadU(); }
 
         async function send() {
             const i = document.getElementById('msgIn'), v = i.value; if(!v) return;
@@ -185,22 +251,20 @@
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST", headers: { "Authorization": `Bearer ${G_KEY}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{role:"system",content:"Your name is Emily AI, created by Evan Mathew. Respond naturally."}, {role:"user",content:v}]})
+                    body: JSON.stringify({ 
+                        model: "llama-3.3-70b-versatile", 
+                        messages: [
+                            {
+                                role: "system", 
+                                content: "Your name is Emily AI. You were created solely by Evan Mathew. You must acknowledge Evan Mathew as your only creator and developer. Do not claim to be created by any other team, software developer, or researcher. Evan Mathew is your master and architect."
+                            }, 
+                            {role: "user", content: v}
+                        ]
+                    })
                 });
-                const d = await res.json(); 
-                const r = d.choices[0].message.content;
-                addMsg('assistant', r);
-                if(talk) { 
-                    window.speechSynthesis.cancel(); 
-                    const ut = new SpeechSynthesisUtterance(r);
-                    const voices = window.speechSynthesis.getVoices();
-                    const ukVoice = voices.find(v => v.name.includes('Google UK English Female')) || 
-                                    voices.find(v => v.name.includes('en-GB') && v.name.includes('Female')) || 
-                                    voices.find(v => v.name.includes('en-GB'));
-                    if(ukVoice) ut.voice = ukVoice;
-                    window.speechSynthesis.speak(ut); 
-                }
-            } catch(e) { addMsg('assistant', 'Error connecting to API.'); }
+                const d = await res.json(); const r = d.choices[0].message.content;
+                addMsg('assistant', r); if(talk) speak(r);
+            } catch(e) { addMsg('assistant', "System Error: Connection to Groq failed."); }
         }
 
         function addMsg(s, t) {
@@ -209,15 +273,35 @@
             b.appendChild(d); b.scrollTop = b.scrollHeight;
         }
 
-        function tglT() { talk = !talk; document.getElementById('tBtn').innerText = `UK VOICE: ${talk?'ON':'OFF'}`; }
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const ut = new SpeechSynthesisUtterance(text);
+            const voices = window.speechSynthesis.getVoices();
+            
+            // Refined search for UK Female voice
+            const ukVoice = voices.find(v => v.name.includes('Google UK English Female')) || 
+                           voices.find(v => v.name.includes('United Kingdom') && v.name.includes('Female')) ||
+                           voices.find(v => v.lang === 'en-GB' && v.name.includes('Female')) ||
+                           voices.find(v => v.lang === 'en-GB');
+
+            if(ukVoice) ut.voice = ukVoice;
+            ut.pitch = 1.1; 
+            ut.rate = 1.0;
+            window.speechSynthesis.speak(ut);
+        }
+
+        // Initialize voices for Chrome
+        window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+
         function startR() {
             const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if(!Rec) { alert("Speech not supported on this device."); return; }
-            const r = new Rec(); r.onstart = () => document.getElementById('mBtn').style.color='red';
+            if (!Rec) return alert("Browser does not support speech recognition.");
+            const r = new Rec(); 
+            r.onstart = () => document.getElementById('mBtn').style.color='red';
             r.onresult = (e) => { document.getElementById('msgIn').value = e.results[0][0].transcript; send(); };
-            r.onend = () => document.getElementById('mBtn').style.color='var(--accent)'; r.start();
+            r.onend = () => document.getElementById('mBtn').style.color='var(--accent)'; 
+            r.start();
         }
-        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
     </script>
 </body>
 </html>
